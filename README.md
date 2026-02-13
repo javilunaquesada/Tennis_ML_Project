@@ -148,7 +148,7 @@ Example:
 
 ## PCA Projection of Player Embeddings
 
-![Player Embeddings PCA](images/player_embeddings_pca.png)
+![Player Embeddings PCA](Images/player_embeddings_pca.png)
 
 The embedding space forms a continuous cloud rather than sharply separated groups.
 
@@ -158,7 +158,7 @@ This indicates that tennis skill and player characteristics exist on gradients r
 
 ## Embeddings vs KMeans Clusters
 
-![Embeddings Colored by Clusters](images/embeddings_vs_clusters.png)
+![Embeddings Colored by Clusters](Images/embeddings_vs_clusters.png)
 
 When coloring embeddings by cluster label:
 
