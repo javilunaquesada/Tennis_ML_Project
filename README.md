@@ -30,24 +30,24 @@ The project emphasizes **rigorous data splitting**, **model comparison**, and **
 Tennis_ML_Project/
 │
 ├── Data/
-│ ├── raw/ # Original ATP datasets (Jeff Sackmann)
-│ ├── processed/ # Cleaned & feature-engineered datasets
+│   ├── raw/
+│   ├── processed/
 │
 ├── notebooks/
-│ ├── 01_eda.ipynb
-│ ├── 02_feature_engineering.ipynb
-│ ├── 03_player_clustering.ipynb
-│ ├── 04_match_prediction_sklearn.ipynb
-│ ├── 05_match_prediction_pytorch.ipynb
-│ └── 06_match_prediction_pytorch_bonus.ipynb
+│   ├── 01_eda.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   ├── 03_player_clustering.ipynb
+│   ├── 04_match_prediction_sklearn.ipynb
+│   ├── 05_match_prediction_pytorch.ipynb
+│   └── 06_match_prediction_pytorch_bonus.ipynb
 │
 ├── src/
-│ ├── dataset.py # Custom PyTorch datasets
-│ ├── models.py # Neural network architectures
-│ ├── train.py # Training & evaluation loops
+│   ├── dataset.py
+│   ├── models.py
+│   ├── train.py
 │
-├── README.md
-└── .gitignore
+└── README.md
+
 
 ---
 
@@ -145,6 +145,30 @@ Key findings:
 
 Example:
 - Rafael Nadal’s nearest neighbors include Novak Djokovic and Juan Martín del Potro, reflecting shared competitive contexts.
+
+## PCA Projection of Player Embeddings
+
+![Player Embeddings PCA](images/player_embeddings_pca.png)
+
+The embedding space forms a continuous cloud rather than sharply separated groups.
+
+This indicates that tennis skill and player characteristics exist on gradients rather than discrete categories.
+
+---
+
+## Embeddings vs KMeans Clusters
+
+![Embeddings Colored by Clusters](images/embeddings_vs_clusters.png)
+
+When coloring embeddings by cluster label:
+
+- There is noticeable overlap.
+- Embeddings do not perfectly replicate clustering.
+
+This suggests that embeddings capture relational match dynamics rather than static player attributes.
+
+Clustering describes *who players are statistically*.  
+Embeddings describe *how players interact competitively*.
 
 ---
 
