@@ -25,32 +25,6 @@ The project emphasizes **rigorous data splitting**, **model comparison**, and **
 
 ---
 
-## 🗂️ Project Structure
-
-Tennis_ML_Project/
-│
-├── Data/
-│   ├── raw/
-│   ├── processed/
-│
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_player_clustering.ipynb
-│   ├── 04_match_prediction_sklearn.ipynb
-│   ├── 05_match_prediction_pytorch.ipynb
-│   └── 06_match_prediction_pytorch_bonus.ipynb
-│
-├── src/
-│   ├── dataset.py
-│   ├── models.py
-│   ├── train.py
-│
-└── README.md
-
-
----
-
 ## 📊 Data Source
 
 - **Jeff Sackmann’s ATP Tennis Dataset**
@@ -148,7 +122,9 @@ Example:
 
 ## PCA Projection of Player Embeddings
 
-![Player Embeddings PCA](Images/player_embeddings_pca.png)
+<p align="center">
+  <img src="Images/player_embeddings_pca.png" width="600">
+</p>
 
 The embedding space forms a continuous cloud rather than sharply separated groups.
 
@@ -158,7 +134,9 @@ This indicates that tennis skill and player characteristics exist on gradients r
 
 ## Embeddings vs KMeans Clusters
 
-![Embeddings Colored by Clusters](Images/embeddings_vs_clusters.png)
+<p align="center">
+  <img src="Images/embeddings_vs_clusters.png" width="600">
+</p>
 
 When coloring embeddings by cluster label:
 
