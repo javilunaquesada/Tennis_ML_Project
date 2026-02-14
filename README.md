@@ -64,7 +64,16 @@ Players are clustered using **KMeans** based on aggregated statistics (2018–20
 - Height  
 - Match participation
 
-Clustering reveals broad archetypes (e.g. elite players, regular tour players, fringe players), but with **significant overlap**, reflecting the continuous nature of tennis skill.
+Clustering reveals broad archetypes (e.g. elite players, low tier player, big servers, average baseliners, regular tour players, aggressive mid-tied players), but with **significant overlap**, reflecting the continuous nature of tennis skill.
+
+---
+
+### PCA Projection of Clusters
+
+<p align="center">
+  <img src="Images/player_clusters.png" width="600">
+</p>
+
 
 ---
 
@@ -120,7 +129,9 @@ Key findings:
 Example:
 - Rafael Nadal’s nearest neighbors include Novak Djokovic and Juan Martín del Potro, reflecting shared competitive contexts.
 
-## PCA Projection of Player Embeddings
+---
+
+### PCA Projection of Player Embeddings
 
 <p align="center">
   <img src="Images/player_embeddings_pca.png" width="600">
@@ -132,7 +143,7 @@ This indicates that tennis skill and player characteristics exist on gradients r
 
 ---
 
-## Embeddings vs KMeans Clusters
+### Embeddings vs KMeans Clusters
 
 <p align="center">
   <img src="Images/embeddings_vs_clusters.png" width="600">
