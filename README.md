@@ -64,16 +64,28 @@ Players are clustered using **KMeans** based on aggregated statistics (2018–20
 - Height  
 - Match participation
 
-Clustering reveals broad archetypes (e.g. elite players, low tier player, big servers, average baseliners, regular tour players, aggressive mid-tied players), but with **significant overlap**, reflecting the continuous nature of tennis skill.
+---
+
+### Player Clustering Profiles
+
+| Cluster | Avg Rank | Win Rate | Avg Height | Key Trait                     | Interpretation                |
+| ------- | -------- | -------- | ---------- | ----------------------------- | ----------------------------- |
+| 0       | 52       | 0.64     | 190 cm     | Strong across surfaces        | High-performance all-rounders |
+| 1       | 158      | 0.33     | 183 cm     | Low surface winrates          | Lower-tier players            |
+| 2       | 59       | 0.55     | 200 cm     | 16+ avg aces, strong on grass | Big servers / power players   |
+| 3       | 85       | 0.47     | 183 cm     | Balanced profile              | Solid mid-level competitors   |
+| 4       | 102      | 0.44     | 190 cm     | Surface variability           | Inconsistent / specialists    |
+
+
+The clustering results reveal meaningful structural differences between player types. In particular, Cluster 2 clearly captures tall, high-ace, grass-favored players, suggesting that the learned embeddings encode playing style characteristics rather than only ranking strength. However, as the image below shows, there is **significant overlap**, reflecting the continuous nature of tennis skill.
 
 ---
 
 ### PCA Projection of Clusters
 
 <p align="center">
-  <img src="Images/player_clusters.png" width="600">
+  <img src="Images/player_clusters.png" width="500">
 </p>
-
 
 ---
 
