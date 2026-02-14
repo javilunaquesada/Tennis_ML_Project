@@ -77,7 +77,7 @@ Players are clustered using **KMeans** based on aggregated statistics (2018–20
 | 4       | 102      | 0.44     | 190 cm     | Surface variability           | Inconsistent / specialists    |
 
 
-The clustering results reveal meaningful structural differences between player types. In particular, Cluster 2 clearly captures tall, high-ace, grass-favored players, suggesting that the learned embeddings encode playing style characteristics rather than only ranking strength. However, as the image below shows, there is **significant overlap**, reflecting the continuous nature of tennis skill.
+The clustering results reveal meaningful structural differences between player types. In particular, Cluster 2 clearly captures tall, high-ace, grass-favored players, suggesting that the learned embeddings encode playing style characteristics rather than only ranking strength. However, as the image below shows, there is **significant overlap** between clusters, reflecting the continuous nature of tennis skill.
 
 ---
 
