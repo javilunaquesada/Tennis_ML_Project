@@ -21,7 +21,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device):
     return total_loss / len(loader)
 
 
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, threshold=0.5):
     model.eval()
     all_probs = []
     all_targets = []
@@ -37,7 +37,7 @@ def evaluate(model, loader, device):
             all_probs.extend(probs.cpu().numpy())
             all_targets.extend(y.cpu().numpy())
 
-    preds = (torch.tensor(all_probs) >= 0.5).int().numpy()
+    preds = (torch.tensor(all_probs) >= threshold).int().numpy()
 
     acc = accuracy_score(all_targets, preds)
     auc = roc_auc_score(all_targets, all_probs)
