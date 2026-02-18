@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from sklearn.metrics import roc_auc_score, accuracy_score
 
 
@@ -42,4 +43,7 @@ def evaluate(model, loader, device, threshold=0.5):
     acc = accuracy_score(all_targets, preds)
     auc = roc_auc_score(all_targets, all_probs)
 
-    return acc, auc
+    all_probs = np.array(all_probs)
+    all_targets = np.array(all_targets)
+
+    return acc, auc, all_probs, all_targets
