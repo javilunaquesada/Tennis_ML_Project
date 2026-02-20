@@ -39,6 +39,5 @@ def compute_elo(matches, k=32, base_rating=1500, rating_col='elo'):
     # Add features to dataframe
     matches[f"{rating_col}_winner"] = winner_elo
     matches[f"{rating_col}_loser"] = loser_elo
-    matches[f"{rating_col}_diff"] = matches[f"{rating_col}_winner"] - matches[f"{rating_col}_loser"]
 
     return matches
