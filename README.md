@@ -254,8 +254,6 @@ The **2024 season** is kept fully unseen until final evaluation.
 
 ## 🧠 Key Takeaways
 
-## 🧠 Key Takeaways
-
 - Feature engineering had a larger impact than increasing model complexity  
 - Introducing a dynamic ELO rating improved ROC-AUC from ~0.68 to ~0.71  
 - Logistic Regression performed nearly as well as Neural Networks once strong features were introduced  
