@@ -109,7 +109,7 @@ This framing allows symmetric learning of win probabilities.
 
 ---
 
-## Dynamic Rating Feature — ELO Implementation
+## ♟️ Dynamic Rating Feature — ELO Implementation
 
 To incorporate temporal player strength dynamics, a **global ELO rating system** was implemented and computed sequentially from 2018–2024 before any data splitting.
 
@@ -132,19 +132,20 @@ ELO introduces:
 
 Each match updates both players’ ratings based on expected win probability:
 
-\[
+$$
 E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}
-\]
+$$
 
-\[
+$$
 R_A' = R_A + K (S_A - E_A)
-\]
+$$
+
 
 Where:
-- \(R_A\) = current rating
-- \(S_A\) = match outcome (1 = win, 0 = loss)
-- \(E_A\) = expected probability
-- \(K\) = update factor
+- $R_A$ = current rating  
+- $S_A$ = match outcome (1 = win, 0 = loss)  
+- $E_A$ = expected probability  
+- $K$ = update factor
 
 The final feature used in prediction models is the difference of ELOs ratings of the two players involved in the match. 
 ELO ratings were computed sequentially across seasons (2018–2024) before splitting the dataset, ensuring that each match rating only used past information and preventing data leakage.
