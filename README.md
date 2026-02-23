@@ -107,6 +107,49 @@ This framing allows symmetric learning of win probabilities.
 
 ---
 
+---
+
+## Dynamic Rating Feature — ELO Implementation
+
+To incorporate temporal player strength dynamics, a **global ELO rating system** was implemented and computed sequentially from 2018–2024 before any data splitting.
+
+### Why ELO?
+
+Static features such as:
+- Ranking
+- Age
+- Height
+- Cluster membership
+
+do not capture performance evolution over time.
+
+ELO introduces:
+
+- Sequential strength updates  
+- Momentum tracking  
+- Historical performance compression  
+- Implicit time-awareness  
+
+Each match updates both players’ ratings based on expected win probability:
+
+\[
+E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}
+\]
+
+\[
+R_A' = R_A + K (S_A - E_A)
+\]
+
+Where:
+- \(R_A\) = current rating
+- \(S_A\) = match outcome (1 = win, 0 = loss)
+- \(E_A\) = expected probability
+- \(K\) = update factor
+
+The final feature used in prediction models is the difference of ELOs ratings of the two players involved in the match. 
+ELO ratings were computed sequentially across seasons (2018–2024) before splitting the dataset, ensuring that each match rating only used past information and preventing data leakage.
+
+
 ## 📈 Models & Results
 
 ### Logistic Regression (baseline)
@@ -123,6 +166,30 @@ This framing allows symmetric learning of win probabilities.
 - Captures relational information between players  
 - Slightly lower predictive performance due to higher model complexity and limited data  
 - Enables deeper **representation analysis**
+
+---
+
+### 🔥 Models with Global ELO Feature
+
+Adding the dynamic ELO rating produced a significant performance improvement.
+
+| Model                | Test Accuracy | Test ROC-AUC |
+|----------------------|--------------|--------------|
+| Logistic Regression  | **0.6466**   | **0.7118**   |
+| Neural Network       | **0.6489**   | **0.7122**   |
+
+Introducing ELO increased ROC-AUC by approximately **+0.03** on unseen 2024 data. This improvement was consistent across both linear and neural models.
+
+### Surface-Specific ELO Experiment
+
+A surface-specific ELO system (separate ratings per player per surface) was also implemented and evaluated.
+
+However, it did **not** improve performance over global ELO:
+
+- Logistic Regression ROC-AUC: 0.7107  
+- Neural Network ROC-AUC: 0.7116  
+
+This suggests that, given the dataset size (2018–2024), global strength dynamics were sufficient and more stable than surface-separated ratings.
 
 ---
 
@@ -186,11 +253,17 @@ The **2024 season** is kept fully unseen until final evaluation.
 
 ## 🧠 Key Takeaways
 
-- Simple features already carry strong predictive signal in tennis  
-- Neural networks offer marginal gains over linear models  
-- Player embeddings provide **interpretability and insight**, even when predictive gains are limited  
-- Model complexity must be balanced carefully with dataset size  
-- Temporal validation is essential in sports analytics
+## 🧠 Key Takeaways
+
+- Feature engineering had a larger impact than increasing model complexity  
+- Introducing a dynamic ELO rating improved ROC-AUC from ~0.68 to ~0.71  
+- Logistic Regression performed nearly as well as Neural Networks once strong features were introduced  
+- Surface-specific modeling did not outperform global strength modeling  
+- Temporal validation is essential in sports analytics to prevent leakage  
+
+This project highlights a central principle of applied machine learning:
+
+> Well-designed features often drive larger improvements than more complex architectures.
 
 ---
 
