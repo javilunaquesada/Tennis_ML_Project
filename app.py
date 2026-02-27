@@ -1,0 +1,154 @@
+import streamlit as st
+import torch
+import joblib  # module commonly used for saving/loading scikit-learn models and preprocessors
+from pathlib import Path
+import sys
+import pandas as pd
+
+# ---- Page Configuration ----
+
+st.set_page_config(page_title="Tennis Match Predictor", layout="centered")
+
+st.title("🎾 Tennis Match Outcome Predictor")
+
+st.write("""
+This app predicts the probability of one player defeating another
+using a Neural Network trained with Global ELO ratings.
+""")
+
+# ---- Project Root Setup ----
+PROJECT_ROOT = Path(__file__).parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.models import MatchOutcomeNN
+
+# ---- Load Model and Scaler ----
+@st.cache_resource
+def load_model_and_preprocessor():
+    MODEL_DIR = PROJECT_ROOT / "models"
+    
+    # Load processor
+    preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
+
+    # Load model architecture
+    input_dim = preprocessor.transformers_[0][1].n_features_in_ + \
+                len(preprocessor.named_transformers_["cat"].get_feature_names_out())
+    model = MatchOutcomeNN(input_dim)
+
+    state_dict = torch.load(MODEL_DIR / "best_nn_global_elo.pth", map_location="cpu")
+    model.load_state_dict(state_dict)
+    model.eval()
+
+    return model, preprocessor
+
+model, preprocessor = load_model_and_preprocessor()
+st.success("Model and preprocessor loaded successfully.")
+
+# ---- Load Match Data With ELO ----
+@st.cache_data
+def load_player_data():
+    DATA_PATH = PROJECT_ROOT / "data" / "processed" / "matches_with_global_elo.csv"
+    matches = pd.read_csv(DATA_PATH)
+
+    # Build player snapshot
+    players = {}
+
+    for _, row in matches.iterrows():
+
+        # Winner update
+        players[row["winner_name"]] = {
+            "elo": row["elo_winner"],
+            "rank": row["winner_rank"],
+            "age": row["winner_age"],
+            "height": row["winner_ht"],
+            "cluster": row["winner_cluster"]
+        }
+
+        # Loser update
+        players[row["loser_name"]] = {
+            "elo": row["elo_loser"],
+            "rank": row["loser_rank"],
+            "age": row["loser_age"],
+            "height": row["loser_ht"],
+            "cluster": row["loser_cluster"]
+        }
+    
+    return players
+
+players_data = load_player_data()
+st.success(f"{len(players_data)} players loaded.")
+st.write(list(players_data.keys())[:10])
+
+# Build User Interface for Player Selection
+st.header("Match Setup")
+player_names = sorted(players_data.keys())
+
+col1, col2 = st.columns(2)
+
+with col1:
+    player_a = st.selectbox("Select Player A", player_names)
+
+with col2:
+    player_b = st.selectbox("Select Player B", player_names)
+
+# Prevent selecting same player
+if player_a == player_b:
+    st.warning("Please select two different players.")
+    st.stop()
+
+# Surface selection
+surface = st.selectbox(
+    "Select Surface",
+    ["Hard", "Clay", "Grass"]
+    )
+
+# Tournament level selection
+tourney_level = st.selectbox(
+    "Select Tournament Level",
+    ["G", "M", "A", "250", "500"]
+)
+
+predict_button = st.button("Predict Match Outcome")
+
+# ---- Prediction Logic ----
+if predict_button:
+
+    # ---- Extract Player Data ----
+    player_a_data =players_data[player_a]
+    player_b_data = players_data[player_b]
+
+    # ---- Compute Feature Differences (A - B) ----
+    feature_row = {
+        "rank_diff": player_a_data["rank"] - player_b_data["rank"],
+        "age_diff": player_a_data["age"] - player_b_data["age"],
+        "height_diff": player_a_data["height"] - player_b_data["height"],
+        "cluster_diff": player_a_data["cluster"] - player_b_data["cluster"],
+        "elo_diff": player_a_data["elo"] - player_b_data["elo"],
+        "surface": surface,
+        "tourney_level": tourney_level
+    }
+
+    # Convert to DataFrame
+    feature_df = pd.DataFrame([feature_row])
+
+    # ---- Apply Preprocessor ----
+    input_processed = preprocessor.transform(feature_df)
+
+    # Convert to torch tensor
+    input_tensor = torch.tensor(input_processed, dtype=torch.float32)
+
+    # ---- Model Prediction ----
+    with torch.no_grad():
+        logits = model(input_tensor)
+        probability = torch.sigmoid(logits).item()
+
+    # ---- Display Results ----
+    st.subheader("Prediction Result")
+
+    st.write(f"**{player_a} win probability:** {probability:.2%}")
+    st.write(f"**{player_b} win probability:** {(1 - probability):.2%}")
+
+    st.progress(probability)
+
+    # Optional: Show ELO difference
+    st.write(f"ELO Difference (A - B): {feature_row['elo_diff']:.2f}")
