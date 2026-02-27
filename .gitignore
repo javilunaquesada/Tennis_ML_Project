@@ -19,11 +19,6 @@ conda_env/
 
 # Data files (raw data should not be tracked)
 data/raw/
-data/processed/
-*.csv
-*.parquet
-*.pkl
-*.joblib
 
 # Model artifacts
 outputs/models/
