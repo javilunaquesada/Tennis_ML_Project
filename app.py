@@ -117,7 +117,7 @@ if predict_button:
     player_a_data =players_data[player_a]
     player_b_data = players_data[player_b]
 
-    # ---- Compute Feature Differences (A - B) ----
+    # ---- Compute Feature Differences ----
     feature_row = {
         "rank_diff": player_a_data["rank"] - player_b_data["rank"],
         "age_diff": player_a_data["age"] - player_b_data["age"],
@@ -143,12 +143,42 @@ if predict_button:
         probability = torch.sigmoid(logits).item()
 
     # ---- Display Results ----
-    st.subheader("Prediction Result")
+    prob_a = probability
+    prob_b = 1 - probability
 
-    st.write(f"**{player_a} win probability:** {probability:.2%}")
-    st.write(f"**{player_b} win probability:** {(1 - probability):.2%}")
+    st.divider()
+    st.subheader("Match Prediction")
 
-    st.progress(probability)
+    col1, col2 = st.columns(2)
 
-    # Optional: Show ELO difference
-    st.write(f"ELO Difference (A - B): {feature_row['elo_diff']:.2f}")
+    with col1:
+        st.metric(
+            label=f"{player_a} Win Probability",
+            value=f"{prob_a:.2%}"
+        )
+    with col2:
+        st.metric(
+            label=f"{player_b} Win Probability",
+            value=f"{prob_b:.2%}"
+        )
+
+    # Highlight the predicted winner
+    if prob_a > prob_b:
+        st.success(f"{player_a} is predicted to win!")
+    else:
+        st.success(f"{player_b} is predicted to win!")
+
+    # Confidence Interpretation
+    confidence = abs(prob_a - 0.5)
+
+    if confidence < 0.05:
+        st.info("Very balanced matchup")
+    elif confidence < 0.15:
+        st.info("Slight edge for the predicted winner")
+    else:
+        st.info("Clear favorite in this matchup based on model predictions")
+
+    # Visual probability bar
+    st.progress(prob_a)
+
+    st.caption(f"ELO difference: {feature_row['elo_diff']:.2f} | Rank difference: {feature_row['rank_diff']} | Age difference: {feature_row['age_diff']}")
