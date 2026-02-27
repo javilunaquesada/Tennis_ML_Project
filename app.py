@@ -4,6 +4,7 @@ import joblib  # module commonly used for saving/loading scikit-learn models and
 from pathlib import Path
 import sys
 import pandas as pd
+import json
 
 # ---- Page Configuration ----
 
@@ -31,8 +32,10 @@ def load_model_and_preprocessor():
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
 
     # Load model architecture
-    input_dim = preprocessor.transformers_[0][1].n_features_in_ + \
-                len(preprocessor.named_transformers_["cat"].get_feature_names_out())
+    with open(MODEL_DIR / "model_metadata.json") as f:
+        metadata = json.load(f)
+
+    input_dim = metadata["input_dim"]
     model = MatchOutcomeNN(input_dim)
 
     state_dict = torch.load(MODEL_DIR / "best_nn_global_elo.pth", map_location="cpu")
