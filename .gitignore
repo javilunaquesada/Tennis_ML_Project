@@ -24,7 +24,6 @@ data/raw/
 outputs/models/
 *.h5
 *.pt
-*.pth
 
 # Logs
 *.log
