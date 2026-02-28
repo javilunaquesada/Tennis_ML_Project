@@ -84,7 +84,7 @@ def load_player_data():
 
 players_data = load_player_data()
 st.success(f"{len(players_data)} players loaded.")
-st.write(list(players_data.keys())[:10])
+#st.write(list(players_data.keys())[:10])
 
 # Build User Interface for Player Selection
 st.header("Match Setup")
