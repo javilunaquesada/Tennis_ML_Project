@@ -8,6 +8,9 @@ import json
 
 # ---- Page Configuration ----
 
+BASE_DIR = Path(__file__).parent
+MODEL_DIR = BASE_DIR / "models"
+
 st.set_page_config(page_title="Tennis Match Predictor", layout="centered")
 
 st.title("🎾 Tennis Match Outcome Predictor")
@@ -26,7 +29,7 @@ from src.models import MatchOutcomeNN
 # ---- Load Model and Scaler ----
 @st.cache_resource
 def load_model_and_preprocessor():
-    MODEL_DIR = PROJECT_ROOT / "models"
+    #MODEL_DIR = PROJECT_ROOT / "models"
     
     # Load processor
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
