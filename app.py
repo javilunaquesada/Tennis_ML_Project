@@ -10,6 +10,7 @@ import json
 
 BASE_DIR = Path(__file__).parent
 MODEL_DIR = BASE_DIR / "models"
+DATA_PATH = BASE_DIR / "Data" / "processed" / "matches_with_global_elo.csv"
 
 st.set_page_config(page_title="Tennis Match Predictor", layout="centered")
 
@@ -53,7 +54,7 @@ st.success("Model and preprocessor loaded successfully.")
 # ---- Load Match Data With ELO ----
 @st.cache_data
 def load_player_data():
-    DATA_PATH = PROJECT_ROOT / "data" / "processed" / "matches_with_global_elo.csv"
+    #DATA_PATH = PROJECT_ROOT / "data" / "processed" / "matches_with_global_elo.csv"
     matches = pd.read_csv(DATA_PATH)
 
     # Build player snapshot
