@@ -14,6 +14,25 @@ The project emphasizes **rigorous data splitting**, **model comparison**, and **
 
 ---
 
+## 🚀 Interactive Demo
+A live version of the model is available via Streamlit:
+👉 Try the app here:
+tennismlproject-9v9zbvnmdfk3wcappvru7ej
+
+The application allows users to:
+* Select two professional players
+* Choose surface and tournament level
+* Generate real-time win probability predictions
+* Leverage a Neural Network trained with Global ELO ratings
+
+The deployed model:
+* Is trained on 2018–2022 data
+* Validated on 2023
+* Evaluated on a strictly held-out 2024 test set
+* Achieves ~0.71 ROC-AUC on unseen matches
+
+---
+
 ## 🎯 Objectives
 
 - Perform exploratory analysis of professional tennis match data  
