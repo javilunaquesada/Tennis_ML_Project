@@ -16,8 +16,9 @@ The project emphasizes **rigorous data splitting**, **model comparison**, and **
 
 ## 🚀 Interactive Demo
 A live version of the model is available via Streamlit:
+
 👉 Try the app here:
-tennismlproject-9v9zbvnmdfk3wcappvru7ej
+https://tennismlproject-9v9zbvnmdfk3wcappvru7ej.streamlit.app/
 
 The application allows users to:
 * Select two professional players
