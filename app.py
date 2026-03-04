@@ -21,6 +21,10 @@ This app predicts the probability of one player defeating another
 using a Neural Network trained with Global ELO ratings.
 """)
 
+st.info('''This model was trained with data previous to 2024, and evaluated on matches from 2024, 
+        so it is most reliable for predictions regarding the 2025 season. Performance may decrease for matches
+        beyond this season, as player dinamics evolve and features vary.''')
+
 # ---- Project Root Setup ----
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
