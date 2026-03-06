@@ -205,3 +205,5 @@ if predict_button:
     
 
     st.caption(f"ELO difference: {feature_row['elo_diff']:.2f} | Rank difference: {feature_row['rank_diff']} | Age difference: {feature_row['age_diff']}")
+
+st.write("Made by Javier Luna Quesada")
