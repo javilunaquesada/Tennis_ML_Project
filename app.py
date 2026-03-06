@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import pandas as pd
 import json
+from src.llm_explainer import generate_match_explanation
 
 # ---- Page Configuration ----
 
@@ -191,6 +192,19 @@ if predict_button:
     else:
         st.info("Clear favorite in this matchup based on model predictions")
 
+    # Explanation prediction
+    explanation = generate_match_explanation(
+        player1=player_a,
+        player2=player_b,
+        surface=surface,
+        tourney_level=tourney_level,
+        probability=prob_a * 100
+    )
+
+    st.subheader("Match Analysis")
+
+    st.info(explanation)
+    
     # Visual probability bar
     st.progress(prob_a)
 
