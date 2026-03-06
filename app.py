@@ -147,7 +147,7 @@ if predict_button:
 
     # ---- Apply Preprocessor ----
     input_processed = preprocessor.transform(feature_df)
-
+    
     # Convert to torch tensor
     input_tensor = torch.tensor(input_processed, dtype=torch.float32)
 
@@ -157,10 +157,11 @@ if predict_button:
         probability = torch.sigmoid(logits).item()
 
     # ---- Display Results ----
-    prob_a = probability
-    prob_a = float(np.clip(prob_a, 0, 1))
+    probability = float(np.clip(probability, 0, 1))
 
+    prob_a = probability
     prob_b = 1 - probability
+
 
     st.divider()
     st.subheader("Match Prediction")
