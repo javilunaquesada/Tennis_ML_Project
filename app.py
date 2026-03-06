@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import pandas as pd
 import json
+import numpy as np
 
 # ---- Page Configuration ----
 
@@ -157,6 +158,8 @@ if predict_button:
 
     # ---- Display Results ----
     prob_a = probability
+    prob_a = float(np.clip(prob_a, 0, 1))
+
     prob_b = 1 - probability
 
     st.divider()
@@ -192,6 +195,12 @@ if predict_button:
         st.info("Clear favorite in this matchup based on model predictions")
 
     # Visual probability bar
-    st.progress(prob_a)
+    if np.isnan(prob_a):
+        st.error("Prediction failed: invalid probability.")
+    else:
+        st.progress(float(prob_a))
+        st.write(f"{prob_a*100:.1f}%")
+
+    
 
     st.caption(f"ELO difference: {feature_row['elo_diff']:.2f} | Rank difference: {feature_row['rank_diff']} | Age difference: {feature_row['age_diff']}")
