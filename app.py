@@ -87,9 +87,9 @@ def load_player_data():
             "cluster": row["loser_cluster"]
         }
     
-    return players
+    return players, matches
 
-players_data = load_player_data()
+players_data, matches = load_player_data()
 st.success(f"{len(players_data)} players loaded.")
 #st.write(list(players_data.keys())[:10])
 
@@ -192,13 +192,28 @@ if predict_button:
     else:
         st.info("Clear favorite in this matchup based on model predictions")
 
-    # Explanation prediction
+    # ---- LLM Match Explanation ----
+    elo1 = player_a_data["elo"]
+    elo2 = player_b_data["elo"]
+
+    rank_diff = feature_row["rank_diff"]
+    age_diff = feature_row["age_diff"]
+    height_diff = feature_row["height_diff"]
+    cluster_diff = feature_row["cluster_diff"]
+
     explanation = generate_match_explanation(
+        matches=matches,
         player1=player_a,
         player2=player_b,
         surface=surface,
         tourney_level=tourney_level,
-        probability=prob_a * 100
+        probability=prob_a * 100,
+        elo_1=elo1,
+        elo_2=elo2,
+        rank_diff=rank_diff,
+        age_diff=age_diff,
+        height_diff=height_diff,
+        cluster_diff=cluster_diff
     )
 
     st.subheader("Match Analysis")
