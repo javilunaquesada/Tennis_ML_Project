@@ -10,7 +10,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_match_explanation(
-    matches,
     player1,
     player2,
     surface,

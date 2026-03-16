@@ -206,7 +206,6 @@ if predict_button:
     cluster_diff = feature_row["cluster_diff"]
 
     explanation = generate_match_explanation(
-        matches=matches,
         player1=player_a,
         player2=player_b,
         surface=surface,
