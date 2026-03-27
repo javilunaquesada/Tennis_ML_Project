@@ -36,8 +36,8 @@ def generate_match_explanation(
     of defeating {player2} on {surface} courts during a {tourney_level} tournament.
 
     Player statistics:
-    {player1}: ELO {elo_1:.1f} | Rank {rank_1} | Age {age_1:.1f} | Height {height_1:.0f} cm
-    {player2}: ELO {elo_2:.1f} | Rank {rank_2} | Age {age_2:.1f} | Height {height_2:.0f} cm
+    {player1}: ELO {elo_1 if isinstance(elo_1, str) else f"{elo_1:.1f}"} | Rank {rank_1} | Age {age_1 if isinstance(age_1, str) else f"{age_1:.1f}"} | Height {height_1 if isinstance(height_1, str) else f"{height_1:.0f} cm"}
+    {player2}: ELO {elo_2 if isinstance(elo_2, str) else f"{elo_2:.1f}"} | Rank {rank_2} | Age {age_2 if isinstance(age_2, str) else f"{age_2:.1f}"} | Height {height_2 if isinstance(height_2, str) else f"{height_2:.0f} cm"}
 
     Additional model input:
     Cluster difference (Player1 - Player2): {cluster_diff}

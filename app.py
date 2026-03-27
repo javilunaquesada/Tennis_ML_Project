@@ -197,20 +197,23 @@ if predict_button:
         st.info("Clear favorite in this matchup based on model predictions")
 
     # ---- LLM Match Explanation ----
+    def safe_val(v, fallback="N/A"):
+        return v if pd.notna(v) else fallback
+
     explanation = generate_match_explanation(
         player1=player_a,
         player2=player_b,
         surface=surface,
         tourney_level=tourney_level,
         probability=prob_a * 100,
-        elo_1=player_a_data["elo"],
-        elo_2=player_b_data["elo"],
-        rank_1=player_a_data["rank"],
-        rank_2=player_b_data["rank"],
-        age_1=player_a_data["age"],
-        age_2=player_b_data["age"],
-        height_1=player_a_data["height"],
-        height_2=player_b_data["height"],
+        elo_1=safe_val(player_a_data["elo"], 1500),
+        elo_2=safe_val(player_b_data["elo"], 1500),
+        rank_1=safe_val(player_a_data["rank"], "N/A"),
+        rank_2=safe_val(player_b_data["rank"], "N/A"),
+        age_1=safe_val(player_a_data["age"], "N/A"),
+        age_2=safe_val(player_b_data["age"], "N/A"),
+        height_1=safe_val(player_a_data["height"], "N/A"),
+        height_2=safe_val(player_b_data["height"], "N/A"),
         cluster_diff=feature_row["cluster_diff"]
     )
 
