@@ -197,26 +197,21 @@ if predict_button:
         st.info("Clear favorite in this matchup based on model predictions")
 
     # ---- LLM Match Explanation ----
-    elo1 = player_a_data["elo"]
-    elo2 = player_b_data["elo"]
-
-    rank_diff = feature_row["rank_diff"]
-    age_diff = feature_row["age_diff"]
-    height_diff = feature_row["height_diff"]
-    cluster_diff = feature_row["cluster_diff"]
-
     explanation = generate_match_explanation(
         player1=player_a,
         player2=player_b,
         surface=surface,
         tourney_level=tourney_level,
         probability=prob_a * 100,
-        elo_1=elo1,
-        elo_2=elo2,
-        rank_diff=rank_diff,
-        age_diff=age_diff,
-        height_diff=height_diff,
-        cluster_diff=cluster_diff
+        elo_1=player_a_data["elo"],
+        elo_2=player_b_data["elo"],
+        rank_1=player_a_data["rank"],
+        rank_2=player_b_data["rank"],
+        age_1=player_a_data["age"],
+        age_2=player_b_data["age"],
+        height_1=player_a_data["height"],
+        height_2=player_b_data["height"],
+        cluster_diff=feature_row["cluster_diff"]
     )
 
     st.subheader("Match Analysis")

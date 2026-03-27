@@ -17,14 +17,16 @@ def generate_match_explanation(
     probability,
     elo_1,
     elo_2,
-    rank_diff,
-    age_diff,
-    height_diff,
+    rank_1,
+    rank_2,
+    age_1,
+    age_2,
+    height_1,
+    height_2,
     cluster_diff
 ):
     """
     Generate a natural language explanation for the predicted match outcome using an LLM.
-    
     """
 
     prompt = f"""
@@ -33,21 +35,15 @@ def generate_match_explanation(
     A machine learning model has predicted that {player1} has a {probability:.2f}% probability 
     of defeating {player2} on {surface} courts during a {tourney_level} tournament.
 
-    Model statistics:
-    {player1} ELO rating: {elo_1}
-    {player2} ELO rating: {elo_2}
+    Player statistics:
+    {player1}: ELO {elo_1:.1f} | Rank {rank_1} | Age {age_1:.1f} | Height {height_1:.0f} cm
+    {player2}: ELO {elo_2:.1f} | Rank {rank_2} | Age {age_2:.1f} | Height {height_2:.0f} cm
 
-    Feature differences used by the model (Player1 - Player2):
+    Additional model input:
+    Cluster difference (Player1 - Player2): {cluster_diff}
 
-    Ranking difference: {rank_diff}
-    Age difference: {age_diff}
-    Height difference: {height_diff}
-    Cluster difference: {cluster_diff}
-
-
-
-    Explain in 2–3 sentences why the model might favor one player. 
-    Base your reasoning primarily on the statistics and feature differences provided above.
+    Explain in 2–3 sentences why the model might favor one player.
+    Base your reasoning primarily on the statistics provided above.
     Mention the predicted probability to contextualize the analysis and highlight the most
     important factors influencing the prediction.
 
