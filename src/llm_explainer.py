@@ -19,7 +19,7 @@ def retrieve_similar_matches(matches, surface, elo_diff, rank_diff):
     df["rank_diff"] = df["winner_rank"] - df["loser_rank"]
 
     # Filter by surface
-    df = df[df[surface] == surface]
+    df = df[df["surface"] == surface]
     
     # Similarity filter
     similar = df[
