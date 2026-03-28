@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import pandas as pd
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
 #Load API key from the .env file
@@ -75,6 +76,9 @@ def find_similar_players(player_name, players_dict, top_k=3):
 
     for other, vec in players_dict.items():
         if other == player_name:
+            continue
+        
+        if np.isnan(target).any() or np.isnan(vec).any():
             continue
 
         sim = cosine_similarity([target], [vec])[0][0]
