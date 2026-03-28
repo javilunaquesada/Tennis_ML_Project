@@ -121,7 +121,7 @@ def generate_match_explanation(
         rag_context = f"""
         Historical matches with similar conditions:
         - Sample size: {stats['sample_size']}
-        - Stronger ELO player wins {stats['win_rate']:.2%} of matches
+        - In {stats['sample_size']} similar matches, the higher ELO player wins {stats['win_rate']:.2%} of the time
         """
     
     # ---- PLAYER EMBEDDINGS ----
