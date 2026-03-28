@@ -201,6 +201,7 @@ if predict_button:
         return v if pd.notna(v) else fallback
 
     explanation = generate_match_explanation(
+        matches=matches,
         player1=player_a,
         player2=player_b,
         surface=surface,

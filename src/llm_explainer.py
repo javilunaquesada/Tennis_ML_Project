@@ -1,6 +1,8 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
 
 #Load API key from the .env file
 load_dotenv()
@@ -9,7 +11,81 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
+def retrieve_similar_matches(matches, surface, elo_diff, rank_diff):
+    
+    df = matches.copy()
+
+    df["elo_diff"] = df["elo_winner"] - df["elo_loser"]
+    df["rank_diff"] = df["winner_rank"] - df["loser_rank"]
+
+    # Filter by surface
+    df = df[df[surface] == surface]
+    
+    # Similarity filter
+    similar = df[
+        (df["elo_diff"].sub(elo_diff).abs() < 100) &  # (df["elo_diff"] - elo_diff).abs() < 100
+        (df["rank_diff"].sub(rank_diff).abs() < 30)
+    ]
+
+    return similar
+
+def compute_match_stats(similar_matches):
+    if len(similar_matches) == 0:
+        return None
+    
+    win_rate = (similar_matches["elo_diff"] > 0).mean() # (creates boolean series).mean()
+
+    return {
+        "sample_size": len(similar_matches),
+        "win_rate": win_rate
+    }
+
+def build_player_embeddings(matches):
+
+    players = {}
+
+    for _, row in matches.iterrows():
+
+        players[row["winner_name"]] = [
+            row["elo_winner"],
+            row["winner_rank"],
+            row["winner_age"],
+            row["winner_ht"],
+            row["winner_cluster"]
+        ]
+
+        players[row["loser_name"]] = [
+            row["elo_winner"],
+            row["winner_rank"],
+            row["winner_age"],
+            row["winner_ht"],
+            row["winner_cluster"]
+        ]
+
+    return players
+
+def find_similar_players(player_name, players_dict, top_k=3):
+
+    if player_name not in players_dict:
+        return []
+
+    target = players_dict[player_name]
+
+    similarities = []
+
+    for other, vec in players_dict.items():
+        if other == player_name:
+            continue
+
+        sim = cosine_similarity([target], [vec])[0][0]
+        similarities.append((other, sim))
+
+    similarities.sort(key=lambda x: x[1], reverse=True)
+
+    return [name for name, _ in similarities[:top_k]]
+
 def generate_match_explanation(
+    matches,
     player1,
     player2,
     surface,
@@ -29,27 +105,54 @@ def generate_match_explanation(
     Generate a natural language explanation for the predicted match outcome using an LLM.
     """
 
+    # ---- RAG: MATCH RETRIEVAL ----
+    elo_diff = elo_1 - elo_2 if isinstance(elo_1, (int, float)) and isinstance(elo_2, (int, float)) else 0
+    rank_diff = (rank_1 - rank_2) if isinstance(rank_1, (int, float)) and isinstance(rank_2, (int, float)) else 0
+
+    similar_matches = retrieve_similar_matches(matches, surface, elo_diff, rank_diff)
+    stats = compute_match_stats(similar_matches)
+
+    rag_context = ""
+    if stats:
+        rag_context = f"""
+        Historical matches with similar conditions:
+        - Sample size: {stats['sample_size']}
+        - Stronger ELO player win rate: {stats['win_rate']:.2%}
+        """
+    
+    # ---- PLAYER EMBEDDINGS ----
+    players_dict = build_player_embeddings(matches)
+
+    similar_p1 = find_similar_players(player1, players_dict)
+    similar_p2 = find_similar_players(player2, players_dict)
+
+    embedding_context = f"""
+    Players with similar profiles:
+    {player1}: {", ".join(similar_p1)}
+    {player2}: {", ".join(similar_p2)}
+    """
+
+    # ---- FINAL PROMPT ----
     prompt = f"""
     You are a tennis analyst.
 
-    A machine learning model has predicted that {player1} has a {probability:.2f}% probability 
-    of defeating {player2} on {surface} courts during a {tourney_level} tournament.
+    A machine learning model predicts that {player1} has a {probability:.2f}% probability 
+    of defeating {player2} on {surface} courts in a {tourney_level} tournament.
 
     Player statistics:
-    {player1}: ELO {elo_1 if isinstance(elo_1, str) else f"{elo_1:.1f}"} | Rank {rank_1} | Age {age_1 if isinstance(age_1, str) else f"{age_1:.1f}"} | Height {height_1 if isinstance(height_1, str) else f"{height_1:.0f} cm"}
-    {player2}: ELO {elo_2 if isinstance(elo_2, str) else f"{elo_2:.1f}"} | Rank {rank_2} | Age {age_2 if isinstance(age_2, str) else f"{age_2:.1f}"} | Height {height_2 if isinstance(height_2, str) else f"{height_2:.0f} cm"}
+    {player1}: ELO {elo_1} | Rank {rank_1} | Age {age_1} | Height {height_1}
+    {player2}: ELO {elo_2} | Rank {rank_2} | Age {age_2} | Height {height_2}
 
-    Additional model input:
-    Cluster difference (Player1 - Player2): {cluster_diff}
+    Cluster difference: {cluster_diff}
 
-    Explain in 2–3 sentences why the model might favor one player.
-    Base your reasoning primarily on the statistics provided above.
-    Mention the predicted probability to contextualize the analysis and highlight the most
-    important factors influencing the prediction.
+    {rag_context}
 
-    Be concise, analytical, and clear for a tennis audience.
+    {embedding_context}
+
+    Explain in 2–3 sentences why the model favors one player.
+    Use both the historical match data and the similarity between players if relevant.
     """
-    
+
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[
