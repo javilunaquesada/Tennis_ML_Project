@@ -62,15 +62,17 @@ st.success("Model and preprocessor loaded successfully.")
 # ---- Load Match Data With ELO ----
 @st.cache_data
 def load_player_data():
-    #DATA_PATH = PROJECT_ROOT / "data" / "processed" / "matches_with_global_elo.csv"
     matches = pd.read_csv(DATA_PATH)
 
-    # Build player snapshot
+    # IMPORTANT: ensure chronological order
+    matches = matches.sort_values("tourney_date")
+
+    # Build player snapshot (latest available state)
     players = {}
 
     for _, row in matches.iterrows():
 
-        # Winner update
+        # Winner update (latest overwrites previous)
         players[row["winner_name"]] = {
             "elo": row["elo_winner"],
             "rank": row["winner_rank"],
