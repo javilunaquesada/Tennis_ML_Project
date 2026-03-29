@@ -138,7 +138,7 @@ def generate_match_explanation(
 
     # ---- FINAL PROMPT ----
     prompt = f"""
-    You are a tennis analyst.
+    You are a professional tennis analyst.
 
     A machine learning model predicts that {player1} has a {probability:.2f}% probability 
     of defeating {player2} on {surface} courts in a {tourney_level} tournament.
@@ -147,14 +147,21 @@ def generate_match_explanation(
     {player1}: ELO {elo_1} | Rank {rank_1} | Age {age_1} | Height {height_1}
     {player2}: ELO {elo_2} | Rank {rank_2} | Age {age_2} | Height {height_2}
 
-    Cluster difference: {cluster_diff}
+    Cluster difference (Player1 - Player2): {cluster_diff}
 
     {rag_context}
 
     {embedding_context}
 
-    Explain in 2–3 sentences why the model favors one player.
-    Use both the historical match data and the similarity between players if relevant.
+    Instructions:
+    - Explain in 2–3 sentences why the model favors one player.
+    - Base your reasoning ONLY on the provided features (ELO, ranking, age, height, cluster) and general playing styles (e.g., surface preferences, playstyle tendencies).
+    - DO NOT mention recent form, momentum, injuries, or any unavailable information.
+    - If the prediction goes against the higher ELO player, explicitly explain why using the feature differences.
+    - Use historical context ({rag_context.strip() != ""}) only as supporting evidence, not as a rule.
+    - Be logically consistent with the predicted probability.
+
+    Write a concise, analytical explanation suitable for a tennis audience, and include the probability to contextualize the prediction.
     """
 
     response = client.chat.completions.create(
