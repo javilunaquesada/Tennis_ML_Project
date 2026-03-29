@@ -64,15 +64,19 @@ st.success("Model and preprocessor loaded successfully.")
 def load_player_data():
     matches = pd.read_csv(DATA_PATH)
 
-    # IMPORTANT: ensure chronological order
-    matches = matches.sort_values("tourney_date")
+    # Ensure date format
+    matches["tourney_date"] = pd.to_datetime(matches["tourney_date"])
 
-    # Build player snapshot (latest available state)
+    # ✅ Keep ONLY latest match per player (winner side)
+    winner_df = matches.sort_values("tourney_date").groupby("winner_name").tail(1)
+
+    # ✅ Same for loser side
+    loser_df = matches.sort_values("tourney_date").groupby("loser_name").tail(1)
+
     players = {}
 
-    for _, row in matches.iterrows():
-
-        # Winner update (latest overwrites previous)
+    # Winner snapshot
+    for _, row in winner_df.iterrows():
         players[row["winner_name"]] = {
             "elo": row["elo_winner"],
             "rank": row["winner_rank"],
@@ -81,15 +85,17 @@ def load_player_data():
             "cluster": row["winner_cluster"]
         }
 
-        # Loser update
-        players[row["loser_name"]] = {
-            "elo": row["elo_loser"],
-            "rank": row["loser_rank"],
-            "age": row["loser_age"],
-            "height": row["loser_ht"],
-            "cluster": row["loser_cluster"]
-        }
-    
+    # Loser snapshot (only if not already present OR newer)
+    for _, row in loser_df.iterrows():
+        if row["loser_name"] not in players:
+            players[row["loser_name"]] = {
+                "elo": row["elo_loser"],
+                "rank": row["loser_rank"],
+                "age": row["loser_age"],
+                "height": row["loser_ht"],
+                "cluster": row["loser_cluster"]
+            }
+
     return players, matches
 
 players_data, matches = load_player_data()
@@ -133,6 +139,9 @@ if predict_button:
     # ---- Extract Player Data ----
     player_a_data =players_data[player_a]
     player_b_data = players_data[player_b]
+
+    st.write(player_a, player_a_data["rank"])
+    st.write(player_b, player_b_data["rank"])
 
     # ---- Compute Feature Differences ----
     feature_row = {
