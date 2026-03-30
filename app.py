@@ -1,6 +1,6 @@
 import streamlit as st
 import torch
-import joblib
+import joblib  # module commonly used for saving/loading scikit-learn models and preprocessors
 from pathlib import Path
 import sys
 import pandas as pd
@@ -26,7 +26,7 @@ using a Neural Network trained with Global ELO ratings.
 st.info("""
 This model was trained with data previous to 2024, and evaluated on matches from 2024, 
 so it is most reliable for predictions regarding the 2025 season. Performance may decrease for matches
-beyond this season, as player dynamics evolve and features vary.
+beyond this season, as player dinamics evolve and features vary.
 """)
 
 # ---- Project Root Setup ----
@@ -35,15 +35,20 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.models import MatchOutcomeNN
 
-# ---- Load Model and Preprocessor ----
+# ---- Load Model and Scaler ----
 @st.cache_resource
 def load_model_and_preprocessor():
+    #MODEL_DIR = PROJECT_ROOT / "models"
+    
+    # Load processor
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
 
+    # Load model architecture
     with open(MODEL_DIR / "model_metadata.json") as f:
         metadata = json.load(f)
 
-    model = MatchOutcomeNN(metadata["input_dim"])
+    input_dim = metadata["input_dim"]
+    model = MatchOutcomeNN(input_dim)
 
     state_dict = torch.load(MODEL_DIR / "best_nn_global_elo.pth", map_location="cpu")
     model.load_state_dict(state_dict)
@@ -54,17 +59,23 @@ def load_model_and_preprocessor():
 model, preprocessor = load_model_and_preprocessor()
 st.success("Model and preprocessor loaded successfully.")
 
-# ---- Load Player Data ----
+# ---- Load Match Data With ELO ----
 @st.cache_data
 def load_player_data():
     matches = pd.read_csv(DATA_PATH)
+
+    # Ensure date format
     matches["tourney_date"] = pd.to_datetime(matches["tourney_date"])
 
+    # ✅ Keep ONLY latest match per player (winner side)
     winner_df = matches.sort_values("tourney_date").groupby("winner_name").tail(1)
+
+    # ✅ Same for loser side
     loser_df = matches.sort_values("tourney_date").groupby("loser_name").tail(1)
 
     players = {}
 
+    # Winner snapshot
     for _, row in winner_df.iterrows():
         players[row["winner_name"]] = {
             "elo": row["elo_winner"],
@@ -74,6 +85,7 @@ def load_player_data():
             "cluster": row["winner_cluster"]
         }
 
+    # Loser snapshot (only if not already present OR newer)
     for _, row in loser_df.iterrows():
         if row["loser_name"] not in players:
             players[row["loser_name"]] = {
@@ -88,88 +100,131 @@ def load_player_data():
 
 players_data, matches = load_player_data()
 st.success(f"{len(players_data)} players loaded.")
+#st.write(list(players_data.keys())[:10])
 
-# ---- UI ----
+# Build User Interface for Player Selection
 st.header("Match Setup")
 player_names = sorted(players_data.keys())
 
 col1, col2 = st.columns(2)
+
 with col1:
     player_a = st.selectbox("Select Player A", player_names)
+
 with col2:
     player_b = st.selectbox("Select Player B", player_names)
 
+# Prevent selecting same player
 if player_a == player_b:
     st.warning("Please select two different players.")
     st.stop()
 
-surface = st.selectbox("Select Surface", ["Hard", "Clay", "Grass"])
-tourney_level = st.selectbox("Select Tournament Level", ["G", "M", "A", "250", "500"])
+# Surface selection
+surface = st.selectbox(
+    "Select Surface",
+    ["Hard", "Clay", "Grass"]
+    )
+
+# Tournament level selection
+tourney_level = st.selectbox(
+    "Select Tournament Level",
+    ["G", "M", "A", "250", "500"]
+)
 
 predict_button = st.button("Predict Match Outcome")
 
-# ---- Prediction ----
+# ---- Prediction Logic ----
 if predict_button:
 
+    # ---- Extract Player Data ----
     player_a_data = players_data[player_a]
     player_b_data = players_data[player_b]
 
-    # ✅ Explicit numeric values
-    rank_a, rank_b = float(player_a_data["rank"]), float(player_b_data["rank"])
-    age_a, age_b = float(player_a_data["age"]), float(player_b_data["age"])
-    height_a, height_b = float(player_a_data["height"]), float(player_b_data["height"])
-    elo_a, elo_b = float(player_a_data["elo"]), float(player_b_data["elo"])
-    cluster_a, cluster_b = float(player_a_data["cluster"]), float(player_b_data["cluster"])
+    # ✅ FORCE numeric conversion
+    rank_a = float(player_a_data["rank"])
+    rank_b = float(player_b_data["rank"])
 
-    # ✅ Explicit diffs (single source of truth)
-    rank_diff = rank_a - rank_b
-    age_diff = age_a - age_b
-    height_diff = height_a - height_b
-    cluster_diff = cluster_a - cluster_b
-    elo_diff = elo_a - elo_b
+    age_a = float(player_a_data["age"])
+    age_b = float(player_b_data["age"])
 
-    # Debug (remove later)
-    st.write("DEBUG:", player_a, rank_a, "|", player_b, rank_b, "| diff:", rank_diff)
+    height_a = float(player_a_data["height"])
+    height_b = float(player_b_data["height"])
 
-    # ---- Model input ----
-    feature_df = pd.DataFrame([{
-        "rank_diff": rank_diff,
-        "age_diff": age_diff,
-        "height_diff": height_diff,
-        "cluster_diff": cluster_diff,
-        "elo_diff": elo_diff,
+    elo_a = float(player_a_data["elo"])
+    elo_b = float(player_b_data["elo"])
+
+    cluster_a = float(player_a_data["cluster"])
+    cluster_b = float(player_b_data["cluster"])
+
+    # Debug
+    st.write(player_a, rank_a)
+    st.write(player_b, rank_b)
+
+    # ---- Compute Feature Differences ----
+    feature_row = {
+        "rank_diff": rank_a - rank_b,
+        "age_diff": age_a - age_b,
+        "height_diff": height_a - height_b,
+        "cluster_diff": cluster_a - cluster_b,
+        "elo_diff": elo_a - elo_b,
         "surface": surface,
         "tourney_level": tourney_level
-    }])
+    }
 
+    # Convert to DataFrame
+    feature_df = pd.DataFrame([feature_row])
+
+    # ---- Apply Preprocessor ----
     input_processed = preprocessor.transform(feature_df)
+    
+    # Convert to torch tensor
     input_tensor = torch.tensor(input_processed, dtype=torch.float32)
 
+    # ---- Model Prediction ----
     with torch.no_grad():
-        probability = torch.sigmoid(model(input_tensor)).item()
+        logits = model(input_tensor)
+        probability = torch.sigmoid(logits).item()
 
+    # ---- Display Results ----
     probability = float(np.clip(probability, 0, 1))
-    prob_a, prob_b = probability, 1 - probability
 
-    # ---- UI ----
+    prob_a = probability
+    prob_b = 1 - probability
+
+
     st.divider()
     st.subheader("Match Prediction")
 
     col1, col2 = st.columns(2)
-    col1.metric(f"{player_a} Win Probability", f"{prob_a:.2%}")
-    col2.metric(f"{player_b} Win Probability", f"{prob_b:.2%}")
 
-    st.success(f"{player_a if prob_a > prob_b else player_b} is predicted to win!")
+    with col1:
+        st.metric(
+            label=f"{player_a} Win Probability",
+            value=f"{prob_a:.2%}"
+        )
+    with col2:
+        st.metric(
+            label=f"{player_b} Win Probability",
+            value=f"{prob_b:.2%}"
+        )
 
+    # Highlight the predicted winner
+    if prob_a > prob_b:
+        st.success(f"{player_a} is predicted to win!")
+    else:
+        st.success(f"{player_b} is predicted to win!")
+
+    # Confidence Interpretation
     confidence = abs(prob_a - 0.5)
+
     if confidence < 0.05:
         st.info("Very balanced matchup")
     elif confidence < 0.15:
-        st.info("Slight edge")
+        st.info("Slight edge for the predicted winner")
     else:
-        st.info("Clear favorite")
+        st.info("Clear favorite in this matchup based on model predictions")
 
-    # ---- LLM ----
+    # ---- LLM Match Explanation ----
     def safe_val(v, fallback="N/A"):
         return v if pd.notna(v) else fallback
 
@@ -180,26 +235,28 @@ if predict_button:
         surface=surface,
         tourney_level=tourney_level,
         probability=prob_a * 100,
-        elo_1=elo_a,
-        elo_2=elo_b,
-        rank_1=rank_a,
-        rank_2=rank_b,
-        rank_diff=rank_diff,  # ✅ KEY FIX
-        age_1=age_a,
-        age_2=age_b,
-        height_1=height_a,
-        height_2=height_b,
-        cluster_diff=cluster_diff
+        elo_1=safe_val(player_a_data["elo"], 1500),
+        elo_2=safe_val(player_b_data["elo"], 1500),
+        rank_1=safe_val(player_a_data["rank"], "N/A"),
+        rank_2=safe_val(player_b_data["rank"], "N/A"),
+        age_1=safe_val(player_a_data["age"], "N/A"),
+        age_2=safe_val(player_b_data["age"], "N/A"),
+        height_1=safe_val(player_a_data["height"], "N/A"),
+        height_2=safe_val(player_b_data["height"], "N/A"),
+        cluster_diff=feature_row["cluster_diff"]
     )
 
     st.subheader("Match Analysis")
-    st.info(explanation)
 
-    if not np.isnan(prob_a):
-        st.progress(prob_a)
+    st.info(explanation)
+    
+    # Visual probability bar
+    if np.isnan(prob_a):
+        st.error("Prediction failed: invalid probability.")
+    else:
+        st.progress(float(prob_a))
         st.write(f"{prob_a*100:.1f}%")
 
-    # ✅ ALWAYS CORRECT NOW
-    st.caption(
-        f"ELO diff: {elo_diff:.2f} | Rank diff: {rank_diff:.2f} | Age diff: {age_diff:.2f}"
-    )
+    
+    st.write(type(player_a_data["rank"]), player_a_data["rank"])
+    st.caption(f"ELO difference: {feature_row['elo_diff']:.2f} | Rank difference: {feature_row['rank_diff']} | Age difference: {feature_row['age_diff']}")
