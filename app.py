@@ -137,19 +137,36 @@ predict_button = st.button("Predict Match Outcome")
 if predict_button:
 
     # ---- Extract Player Data ----
-    player_a_data =players_data[player_a]
+    player_a_data = players_data[player_a]
     player_b_data = players_data[player_b]
 
-    st.write(player_a, player_a_data["rank"])
-    st.write(player_b, player_b_data["rank"])
+    # ✅ FORCE numeric conversion
+    rank_a = float(player_a_data["rank"])
+    rank_b = float(player_b_data["rank"])
+
+    age_a = float(player_a_data["age"])
+    age_b = float(player_b_data["age"])
+
+    height_a = float(player_a_data["height"])
+    height_b = float(player_b_data["height"])
+
+    elo_a = float(player_a_data["elo"])
+    elo_b = float(player_b_data["elo"])
+
+    cluster_a = float(player_a_data["cluster"])
+    cluster_b = float(player_b_data["cluster"])
+
+    # Debug
+    st.write(player_a, rank_a)
+    st.write(player_b, rank_b)
 
     # ---- Compute Feature Differences ----
     feature_row = {
-        "rank_diff": player_a_data["rank"] - player_b_data["rank"],
-        "age_diff": player_a_data["age"] - player_b_data["age"],
-        "height_diff": player_a_data["height"] - player_b_data["height"],
-        "cluster_diff": player_a_data["cluster"] - player_b_data["cluster"],
-        "elo_diff": player_a_data["elo"] - player_b_data["elo"],
+        "rank_diff": rank_a - rank_b,
+        "age_diff": age_a - age_b,
+        "height_diff": height_a - height_b,
+        "cluster_diff": cluster_a - cluster_b,
+        "elo_diff": elo_a - elo_b,
         "surface": surface,
         "tourney_level": tourney_level
     }
