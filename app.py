@@ -258,5 +258,5 @@ if predict_button:
         st.write(f"{prob_a*100:.1f}%")
 
     
-
+    st.write(type(player_a_data["rank"]), player_a_data["rank"])
     st.caption(f"ELO difference: {feature_row['elo_diff']:.2f} | Rank difference: {feature_row['rank_diff']} | Age difference: {feature_row['age_diff']}")
