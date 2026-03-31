@@ -156,10 +156,6 @@ if predict_button:
     cluster_a = float(player_a_data["cluster"])
     cluster_b = float(player_b_data["cluster"])
 
-    # Debug
-    st.write(player_a, rank_a)
-    st.write(player_b, rank_b)
-
     # ---- Compute Feature Differences ----
     feature_row = {
         "rank_diff": rank_a - rank_b,
