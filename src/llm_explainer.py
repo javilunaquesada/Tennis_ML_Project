@@ -156,10 +156,10 @@ def generate_match_explanation(
     - ELO difference: {elo_diff}
 
     IMPORTANT:
-    - A NEGATIVE rank difference means Player1 has a BETTER ranking.
-    - A POSITIVE rank difference means Player1 has a WORSE ranking.
-    - A POSITIVE ELO difference means Player1 is stronger.
-    - A NEGATIVE ELO difference means Player2 is stronger.
+    - A NEGATIVE rank difference means Player 1 has a BETTER ranking.
+    - A POSITIVE rank difference means Player 1 has a WORSE ranking.
+    - A POSITIVE ELO difference means Player 1 is stronger.
+    - A NEGATIVE ELO difference means Player 2 is stronger.
 
     {rag_context}
 
@@ -171,6 +171,7 @@ def generate_match_explanation(
     Interpret the sign of each feature correctly based on the definitions.
     Do NOT assume that negative values are bad or positive values are good without context.
     Do NOT mention momentum, injuries, or recent form.
+    Do NOT use cluster information for this analysis.
 
     Be precise, consistent with the data, and avoid contradictions.
     """
