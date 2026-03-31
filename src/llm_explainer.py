@@ -112,7 +112,8 @@ def generate_match_explanation(
     # ---- RAG: MATCH RETRIEVAL ----
     elo_diff = elo_1 - elo_2 if isinstance(elo_1, (int, float)) and isinstance(elo_2, (int, float)) else 0
     rank_diff = (rank_1 - rank_2) if isinstance(rank_1, (int, float)) and isinstance(rank_2, (int, float)) else 0
-
+    age_diff = {age_1 - age_2 if isinstance(age_1, (int, float)) and isinstance(age_2, (int, float)) else "N/A"}
+    height_diff = {height_1 - height_2 if isinstance(height_1, (int, float)) and isinstance(height_2, (int, float)) else "N/A"}
     similar_matches = retrieve_similar_matches(matches, surface, elo_diff, rank_diff)
     stats = compute_match_stats(similar_matches)
 
@@ -138,32 +139,40 @@ def generate_match_explanation(
 
     # ---- FINAL PROMPT ----
     prompt = f"""
-    You are a professional tennis analyst.
+    You are a tennis analyst.
 
     A machine learning model predicts that {player1} has a {probability:.2f}% probability 
     of defeating {player2} on {surface} courts in a {tourney_level} tournament.
 
-    Feature differences (Player1 - Player2):
-    - ELO difference: {elo_1 - elo_2 if isinstance(elo_1, (int, float)) and isinstance(elo_2, (int, float)) else "N/A"}
-    - Ranking difference: {rank_1 - rank_2 if isinstance(rank_1, (int, float)) and isinstance(rank_2, (int, float)) else "N/A"}
-    - Age difference: {age_1 - age_2 if isinstance(age_1, (int, float)) and isinstance(age_2, (int, float)) else "N/A"}
-    - Height difference: {height_1 - height_2 if isinstance(height_1, (int, float)) and isinstance(height_2, (int, float)) else "N/A"}
-    - Cluster difference: {cluster_diff}
+    Player statistics:
+    {player1}: ELO {elo_1} | Rank {rank_1} | Age {age_1} | Height {height_1}
+    {player2}: ELO {elo_2} | Rank {rank_2} | Age {age_2} | Height {height_2}
 
-    Interpretation rules:
-    - A negative ranking difference means Player1 has a WORSE ranking (higher number).
-    - A positive ELO difference means Player1 is stronger according to the model.
-    - Base your reasoning ONLY on these features and general playing styles (e.g., surface preferences, playstyle tendencies).
-    - DO NOT mention recent form, momentum, injuries, or any unavailable information.
-    - If the prediction goes against the higher ELO or better-ranked player, explicitly explain why.
-    - Use historical match data below only as supporting evidence, not as a strict rule.
+    Feature differences (Player1 - Player2):
+    - Rank difference: {rank_diff}
+    - Age difference: {age_diff}
+    - Height difference: {height_diff}
+    - Cluster difference: {cluster_diff}
+    - ELO difference: {elo_diff}
+
+    IMPORTANT:
+    - A NEGATIVE rank difference means Player1 has a BETTER ranking.
+    - A POSITIVE rank difference means Player1 has a WORSE ranking.
+    - A POSITIVE ELO difference means Player1 is stronger.
+    - A NEGATIVE ELO difference means Player2 is stronger.
 
     {rag_context}
 
     {embedding_context}
 
-    Write a concise (2–3 sentences), clear, and logically consistent explanation for a tennis audience.
-    Include the predicted probability to contextualize the analysis.
+    Explain in 2–3 sentences why the model favors one player.
+
+    Only use the features provided above.
+    Interpret the sign of each feature correctly based on the definitions.
+    Do NOT assume that negative values are bad or positive values are good without context.
+    Do NOT mention momentum, injuries, or recent form.
+
+    Be precise, consistent with the data, and avoid contradictions.
     """
 
     response = client.chat.completions.create(
