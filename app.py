@@ -7,12 +7,18 @@ import pandas as pd
 import json
 import numpy as np
 from src.llm_explainer import generate_match_explanation
+from src.db import engine
+from src.database import DatabaseManager
+
+
+import sklearn
+print(sklearn.__version__)
 
 # ---- Page Configuration ----
 
 BASE_DIR = Path(__file__).parent
 MODEL_DIR = BASE_DIR / "models"
-DATA_PATH = BASE_DIR / "Data" / "processed" / "matches_with_global_elo.csv"
+# DATA_PATH = BASE_DIR / "Data" / "processed" / "matches_with_global_elo.csv"
 
 st.set_page_config(page_title="Tennis Match Predictor", layout="centered")
 
@@ -43,6 +49,13 @@ def load_model_and_preprocessor():
     # Load processor
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
 
+    print(type(preprocessor))
+    print(preprocessor)
+
+    for name, transformer, cols in preprocessor.transformers_:
+        print("\n", name)
+        print(transformer)
+
     # Load model architecture
     with open(MODEL_DIR / "model_metadata.json") as f:
         metadata = json.load(f)
@@ -62,7 +75,11 @@ st.success("Model and preprocessor loaded successfully.")
 # ---- Load Match Data With ELO ----
 @st.cache_data
 def load_player_data():
-    matches = pd.read_csv(DATA_PATH)
+    # matches = pd.read_csv(DATA_PATH)
+
+    db = DatabaseManager()  # Initialize the database manager to handle all database interactions
+
+    matches = db.get_matches()
 
     # Ensure date format
     matches["tourney_date"] = pd.to_datetime(matches["tourney_date"])
