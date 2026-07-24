@@ -10,9 +10,6 @@ from src.llm_explainer import generate_match_explanation
 from src.database import DatabaseManager
 
 
-import sklearn
-print(sklearn.__version__)
-
 # ---- Page Configuration ----
 
 BASE_DIR = Path(__file__).parent
@@ -47,13 +44,6 @@ def load_model_and_preprocessor():
     
     # Load processor
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
-
-    print(type(preprocessor))
-    print(preprocessor)
-
-    for name, transformer, cols in preprocessor.transformers_:
-        print("\n", name)
-        print(transformer)
 
     # Load model architecture
     with open(MODEL_DIR / "model_metadata.json") as f:
@@ -211,6 +201,7 @@ if predict_button:
 
     explanation = generate_match_explanation(
         matches=matches,
+        players=players_data,
         player1=player_a,
         player2=player_b,
         surface=surface,
