@@ -23,9 +23,23 @@ class DatabaseManager:
         port = os.getenv("POSTGRES_PORT")
         name = os.getenv("POSTGRES_DB")
 
+        missing = [k for k, v in {
+            "POSTGRES_USER": user,
+            "POSTGRES_PASSWORD": password,
+            "POSTGRES_HOST": host,
+            "POSTGRES_PORT": port,
+            "POSTGRES_DB": name,
+        }.items() if not v]
+
+        if missing:
+            raise ValueError(
+                f"Missing required environment variables: {', '.join(missing)}. "
+                "Set them in Streamlit Cloud > App settings > Secrets."
+            )
+
         database_url = (
             f"postgresql://{user}:{password}"
-            f"@{host}:{port}/{name}"
+            f"@{host}:{int(port)}/{name}"
         )
 
         return create_engine(database_url)
