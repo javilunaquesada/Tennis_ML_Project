@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 import pandas as pd
 
-from src import db
-
 load_dotenv()
 
 class DatabaseManager:
@@ -27,7 +25,7 @@ class DatabaseManager:
 
         database_url = (
             f"postgresql://{user}:{password}"
-            f"@{host}:{port}/{db}"
+            f"@{host}:{port}/{name}"
         )
 
         return create_engine(database_url)
