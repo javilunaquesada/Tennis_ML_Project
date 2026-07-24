@@ -7,12 +7,17 @@ import pandas as pd
 import json
 import numpy as np
 from src.llm_explainer import generate_match_explanation
+from src.database import DatabaseManager
+
+
+import sklearn
+print(sklearn.__version__)
 
 # ---- Page Configuration ----
 
 BASE_DIR = Path(__file__).parent
 MODEL_DIR = BASE_DIR / "models"
-DATA_PATH = BASE_DIR / "Data" / "processed" / "matches_with_global_elo.csv"
+# DATA_PATH = BASE_DIR / "Data" / "processed" / "matches_with_global_elo.csv"
 
 st.set_page_config(page_title="Tennis Match Predictor", layout="centered")
 
@@ -43,6 +48,13 @@ def load_model_and_preprocessor():
     # Load processor
     preprocessor = joblib.load(MODEL_DIR / "preprocessor_global_elo.pkl")
 
+    print(type(preprocessor))
+    print(preprocessor)
+
+    for name, transformer, cols in preprocessor.transformers_:
+        print("\n", name)
+        print(transformer)
+
     # Load model architecture
     with open(MODEL_DIR / "model_metadata.json") as f:
         metadata = json.load(f)
@@ -62,39 +74,12 @@ st.success("Model and preprocessor loaded successfully.")
 # ---- Load Match Data With ELO ----
 @st.cache_data
 def load_player_data():
-    matches = pd.read_csv(DATA_PATH)
 
-    # Ensure date format
-    matches["tourney_date"] = pd.to_datetime(matches["tourney_date"])
+    db = DatabaseManager()  # Initialize the database manager to handle all database interactions
 
-    # ✅ Keep ONLY latest match per player (winner side)
-    winner_df = matches.sort_values("tourney_date").groupby("winner_name").tail(1)
+    matches = db.get_matches()
 
-    # ✅ Same for loser side
-    loser_df = matches.sort_values("tourney_date").groupby("loser_name").tail(1)
-
-    players = {}
-
-    # Winner snapshot
-    for _, row in winner_df.iterrows():
-        players[row["winner_name"]] = {
-            "elo": row["elo_winner"],
-            "rank": row["winner_rank"],
-            "age": row["winner_age"],
-            "height": row["winner_ht"],
-            "cluster": row["winner_cluster"]
-        }
-
-    # Loser snapshot (only if not already present OR newer)
-    for _, row in loser_df.iterrows():
-        if row["loser_name"] not in players:
-            players[row["loser_name"]] = {
-                "elo": row["elo_loser"],
-                "rank": row["loser_rank"],
-                "age": row["loser_age"],
-                "height": row["loser_ht"],
-                "cluster": row["loser_cluster"]
-            }
+    players = db.get_latest_players()
 
     return players, matches
 
