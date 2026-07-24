@@ -1,16 +1,22 @@
 from pathlib import Path
+import os
 
 import pandas as pd
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # -----------------------------
 # Database connection
 # -----------------------------
 
-engine = create_engine(
-    "postgresql://postgres:0106@localhost:5432/tennis_ml"
+database_url = (
+    f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+    f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}?sslmode=require"
 )
+
+engine = create_engine(database_url)
 
 # -----------------------------
 # Load CSV

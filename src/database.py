@@ -1,21 +1,26 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
 import pandas as pd
 
 load_dotenv()
 
+CSV_FALLBACK = Path(__file__).parent.parent / "Data" / "processed" / "matches_with_global_elo.csv"
+
+
 class DatabaseManager:
     """
-    Central class responsible for all database interactions.
+    Loads match data from PostgreSQL when credentials are available,
+    or falls back to the local CSV for environments like Streamlit Cloud
+    where no database is configured.
     """
 
     def __init__(self):
         self.engine = self._create_engine()
-    
+
     def _create_engine(self):
         """
-        Creates SQLAlchemy engine using environment variables.
+        Returns a SQLAlchemy engine if all Postgres env vars are set, else None.
         """
         user = os.getenv("POSTGRES_USER")
         password = os.getenv("POSTGRES_PASSWORD")
@@ -23,61 +28,36 @@ class DatabaseManager:
         port = os.getenv("POSTGRES_PORT")
         name = os.getenv("POSTGRES_DB")
 
-        missing = [k for k, v in {
-            "POSTGRES_USER": user,
-            "POSTGRES_PASSWORD": password,
-            "POSTGRES_HOST": host,
-            "POSTGRES_PORT": port,
-            "POSTGRES_DB": name,
-        }.items() if not v]
+        if not all([user, password, host, port, name]):
+            return None
 
-        if missing:
-            raise ValueError(
-                f"Missing required environment variables: {', '.join(missing)}. "
-                "Set them in Streamlit Cloud > App settings > Secrets."
-            )
-
+        from sqlalchemy import create_engine
         database_url = (
             f"postgresql://{user}:{password}"
-            f"@{host}:{int(port)}/{name}"
+            f"@{host}:{int(port)}/{name}?sslmode=require"
         )
-
         return create_engine(database_url)
-    
-    def get_matches(self):
-        """
-        Load all matches from PostgreSQL.
-        """
-        query = """
-        SELECT *
-        FROM matches
-        """
 
-        matches = pd.read_sql(query, self.engine)
+    def get_matches(self) -> pd.DataFrame:
+        """
+        Load all matches from PostgreSQL, or from CSV if no DB is configured.
+        """
+        if self.engine is not None:
+            matches = pd.read_sql("SELECT * FROM matches", self.engine)
+        else:
+            matches = pd.read_csv(CSV_FALLBACK)
 
         matches["tourney_date"] = pd.to_datetime(matches["tourney_date"])
-
         return matches
 
-    def get_latest_players(self):
+    def get_latest_players(self) -> dict:
         """
-        Build a snapshot containing the latest available information
-        for every player in the database.
+        Build a snapshot of the latest stats for every player.
         """
-
         matches = self.get_matches()
 
-        winner_df = (
-            matches.sort_values("tourney_date")
-            .groupby("winner_name")
-            .tail(1)
-        )
-
-        loser_df = (
-            matches.sort_values("tourney_date")
-            .groupby("loser_name")
-            .tail(1)
-        )
+        winner_df = matches.sort_values("tourney_date").groupby("winner_name").tail(1)
+        loser_df = matches.sort_values("tourney_date").groupby("loser_name").tail(1)
 
         players = {}
 
